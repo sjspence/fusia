@@ -7,9 +7,6 @@ import argparse
 from Bio import SeqIO
 from Bio.Seq import Seq
 
-# TODO
-# check input sequence for case, characters
-# check assemblies for case, characters
 
 def main(options):
     
@@ -18,14 +15,19 @@ def main(options):
     search_seq_rc = str(Seq(search_seq).reverse_complement())
 
     # Prepare out_file handle for recording search results
+    try:
+        assert options.o.endswith('.csv')
+    except:
+        raise ValueError('Output file must be .CSV')
     out_handle = open(options.o, 'w')
     out_handle.write('# search_seq: %s\n' % search_seq)
     out_handle.write('# search_seq_rc: %s\n' % search_seq_rc)
     out_handle.write('file_name,record_id,record_description\n')
 
+    # Launch search by iterating through available fasta files
     for f in os.listdir(options.i):
         if f.endswith('.fa') or f.endswith('.fasta') or \
-                                f.endswith('.fsa'):
+                                f.endswith('.fna'):
 
             file_name = '%s/%s' % (options.i, f)
             
@@ -38,7 +40,6 @@ def main(options):
                     out_handle.write('%s\n' % out_string)
 
     out_handle.close()
-
 
 
 if __name__ == '__main__':
