@@ -5,10 +5,23 @@ import sys
 import argparse
 
 from Bio import SeqIO
+from Bio.Seq import Seq
+
+# TODO
+# check input sequence for case, characters
+# check assemblies for case, characters
 
 def main(options):
     
-    test_seq = 'CATCGCCGCGCAAACGTTTAAGCAG'
+    # Format input sequence to search both forward and reverse complements
+    search_seq = (options.s).upper()
+    search_seq_rc = str(Seq(search_seq).reverse_complement())
+
+    # Prepare out_file handle for recording search results
+    out_handle = open(options.o, 'w')
+    out_handle.write('# search_seq: %s\n' % search_seq)
+    out_handle.write('# search_seq_rc: %s\n' % search_seq_rc)
+    out_handle.write('file_name,record_id,record_description\n')
 
     for f in os.listdir(options.i):
         if f.endswith('.fa') or f.endswith('.fasta') or \
@@ -16,27 +29,29 @@ def main(options):
 
             file_name = '%s/%s' % (options.i, f)
             
-            # START HERE
-            SeqIO.read()
+            records = SeqIO.parse(file_name, "fasta")
 
-            for line in file_handle:
-                if test_seq in line:
-                    print(line)
+            for record in records:
+                if (search_seq in record.seq) or (search_seq_rc in record.seq):
+                    out_string = ','.join([file_name, record.id, 
+                                           record.description])
+                    out_handle.write('%s\n' % out_string)
 
-            file_handle.close()
+    out_handle.close()
+
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--in_dir", dest="i", required=True,
+    parser.add_argument("-i", "--in_dir", dest="i", required=True, type=str,
                         help="Input directory of assemblies in fasta format.",
                         metavar="INPUT")
-    parser.add_argument("-s", "--sequence", dest="s",
+    parser.add_argument("-s", "--sequence", dest="s", required=True, type=str,
                         help="Sequence to check for uniqueness within a set \
                         of assemblies.")
-    parser.add_argument("-o", "--output", dest="o",
-                        help="Output TBD.",
-                        metavar="OUTPUT")
+    parser.add_argument("-o", "--out_file", dest="o", required=True, type=str,
+                        help="Output file summarizing locations of the \
+                        substring.", metavar="OUTPUT")
 
     options = parser.parse_args()
     main(options)
