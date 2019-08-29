@@ -7,11 +7,29 @@ import argparse
 from Bio import SeqIO
 from Bio.Seq import Seq
 
+ACCEPTED_IUPAC = set('GATCN')
+EXTENDED_IUPAC = set('URYSWKMBDHVN.-')
+
+def check_seq(sequence):
+    """
+    Ensure sequence is uppercase for comparison, and with only canonical
+    IUPAC DNA characters
+    """
+
+    sequence = sequence.upper()
+
+    try:
+        assert set(sequence).issubset(ACCEPTED_IUPAC)
+    except:
+        raise ValueError('Unexpected character\n%s' % sequence)
+
+    return sequence
+
 
 def main(options):
     
     # Format input sequence to search both forward and reverse complements
-    search_seq = (options.s).upper()
+    search_seq = check_seq(options.s)
     search_seq_rc = str(Seq(search_seq).reverse_complement())
 
     # Prepare out_file handle for recording search results
@@ -19,6 +37,7 @@ def main(options):
         assert options.o.endswith('.csv')
     except:
         raise ValueError('Output file must be .CSV')
+
     out_handle = open(options.o, 'w')
     out_handle.write('# search_seq: %s\n' % search_seq)
     out_handle.write('# search_seq_rc: %s\n' % search_seq_rc)
@@ -34,10 +53,19 @@ def main(options):
             records = SeqIO.parse(file_name, "fasta")
 
             for record in records:
-                if (search_seq in record.seq) or (search_seq_rc in record.seq):
 
-                    count = record.seq.count(search_seq)
-                    count_rc = record.seq.count(search_seq_rc)
+                # Ensure sequence is uppercase for comparison, only canonical
+                # IUPAC DNA characters
+                record_seq = str(record.seq).upper()
+                try:
+                    assert set(record_seq).issubset(ACCEPTED_IUPAC)
+                except:
+                    raise ValueError('Unexpected character\n%s' % record_seq)
+
+                if (search_seq in record_seq) or (search_seq_rc in record_seq):
+
+                    count = record_seq.count(search_seq)
+                    count_rc = record_seq.count(search_seq_rc)
                     count_total = count + count_rc
 
                     out_string = ','.join([file_name, record.id, 
