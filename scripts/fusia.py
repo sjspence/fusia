@@ -22,21 +22,27 @@ def main(options):
     out_handle = open(options.o, 'w')
     out_handle.write('# search_seq: %s\n' % search_seq)
     out_handle.write('# search_seq_rc: %s\n' % search_seq_rc)
-    out_handle.write('file_name,record_id,record_description\n')
+    out_handle.write('file_name,record_id,record_description, count\n')
 
     # Launch search by iterating through available fasta files
     for f in os.listdir(options.i):
         if f.endswith('.fa') or f.endswith('.fasta') or \
                                 f.endswith('.fna'):
 
+            print("Searching for seq in %s" % f)
             file_name = '%s/%s' % (options.i, f)
-            
             records = SeqIO.parse(file_name, "fasta")
 
             for record in records:
                 if (search_seq in record.seq) or (search_seq_rc in record.seq):
+
+                    count = record.seq.count(search_seq)
+                    count_rc = record.seq.count(search_seq_rc)
+                    count_total = count + count_rc
+
                     out_string = ','.join([file_name, record.id, 
-                                           record.description])
+                                           record.description, 
+                                           str(count_total)])
                     out_handle.write('%s\n' % out_string)
 
     out_handle.close()
