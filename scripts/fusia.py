@@ -78,15 +78,31 @@ def main(options):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--in_dir", dest="i", required=True, type=str,
-                        help="Input directory of assemblies in fasta format.",
-                        metavar="INPUT")
-    parser.add_argument("-s", "--sequence", dest="s", required=True, type=str,
-                        help="Sequence to check for uniqueness within a set \
-                        of assemblies.")
-    parser.add_argument("-o", "--out_file", dest="o", required=True, type=str,
-                        help="Output file summarizing locations of the \
-                        substring.", metavar="OUTPUT")
+
+    subparsers = parser.add_subparsers(dest='command')
+    substring = subparsers.add_parser('substring', help="Find occurences of \
+                                      input substring.")
+
+    substring.add_argument("-i", "--in_dir", dest="i", required=True, 
+                           type=str, metavar="INPUT",
+                           help="Input directory of assemblies in fasta \
+                           format.")
+    substring.add_argument("-s", "--sequence", dest="s", required=True, 
+                           type=str,
+                           help="Sequence to check for uniqueness within a \
+                           set of assemblies.")
+    substring.add_argument("-o", "--out_file", dest="o", required=True, 
+                           type=str, metavar="OUTPUT",
+                           help="Output file summarizing locations of the \
+                           substring.")
+
+    unique = subparsers.add_parser('unique', help="Find unique region across \
+                                   input fasta files.")
+
+    unique.add_argument("-i", "--in_dir", dest="i", required=True, type=str,
+                        metavar="INPUT", help="Test...")
 
     options = parser.parse_args()
-    main(options)
+
+    if options.command == 'substring':
+        main(options)
