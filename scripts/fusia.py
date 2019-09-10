@@ -6,30 +6,18 @@ import argparse
 
 from Bio import SeqIO
 from Bio.Seq import Seq
+from Bio.Alphabet import generic_dna
+
+import util_funcs
 
 ACCEPTED_IUPAC = set('GATCN')
 EXTENDED_IUPAC = set('URYSWKMBDHVN.-')
 
-def check_seq(sequence):
-    """
-    Ensure sequence is uppercase for comparison, and with only canonical
-    IUPAC DNA characters
-    """
 
-    sequence = sequence.upper()
-
-    try:
-        assert set(sequence).issubset(ACCEPTED_IUPAC)
-    except:
-        raise ValueError('Unexpected character\n%s' % sequence)
-
-    return sequence
-
-
-def main(options):
+def launch_substring(options):
     
     # Format input sequence to search both forward and reverse complements
-    search_seq = check_seq(options.s)
+    search_seq = util_funcs.check_seq(options.s)
     search_seq_rc = str(Seq(search_seq).reverse_complement())
 
     # Prepare out_file handle for recording search results
@@ -76,13 +64,45 @@ def main(options):
     out_handle.close()
 
 
-if __name__ == '__main__':
+def launch_unique(options):
+
+    # Prepare output directories
+    if not os.path.exists(options.o):
+        os.makedirs(options.o)
+
+
+    # Iterate through input fasta files and convert to .gbk
+    for f in os.listdir(options.i):
+        if f.endswith('.fa') or f.endswith('.fasta') or \
+                                f.endswith('.fna'):
+            print("Converting %s to .gbk" % f)
+
+            input_fasta = "%s/%s" % (options.i, f)
+            gbk_filename = '.'.join(f.split('.')[0:-1]) + '.gbk'
+            output_gbk = "%s/%s" % (options.o, gbk_filename)
+
+            input_handle = open(input_fasta, 'r')
+            sequences = list(SeqIO.parse(input_handle, "fasta"))
+            for s in sequences:
+                full_description = s.id
+                s.name = '_'.join(full_description.split('_')[0:2])
+                s.seq.alphabet = generic_dna
+
+            output_handle = open(output_gbk, 'w')
+            count = SeqIO.write(sequences, output_handle, "genbank")
+
+            input_handle.close()
+            output_handle.close()
+            print("Converted %i records" % count)
+
+
+def main():
     parser = argparse.ArgumentParser()
 
     subparsers = parser.add_subparsers(dest='command')
+
     substring = subparsers.add_parser('substring', help="Find occurences of \
                                       input substring.")
-
     substring.add_argument("-i", "--in_dir", dest="i", required=True, 
                            type=str, metavar="INPUT",
                            help="Input directory of assemblies in fasta \
@@ -98,11 +118,31 @@ if __name__ == '__main__':
 
     unique = subparsers.add_parser('unique', help="Find unique region across \
                                    input fasta files.")
-
-    unique.add_argument("-i", "--in_dir", dest="i", required=True, type=str,
-                        metavar="INPUT", help="Test...")
+    unique.add_argument("-i", "--in_dir", dest="i", required=True, 
+                        type=str, metavar="INPUT",
+                        help="Input directory of assemblies in fasta \
+                        format.")
+    unique.add_argument("-o", "--out_dir", dest="o", required=True, 
+                        type=str, metavar="OUTPUT",
+                        help="Output directory of assemblies in gbk \
+                        format.")
 
     options = parser.parse_args()
 
     if options.command == 'substring':
-        main(options)
+        launch_substring(options)
+
+    elif options.command == 'unique':
+        launch_unique(options)
+
+    else:
+        raise ValueError("Unrecognized command: %s" % options.command)
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+
+
