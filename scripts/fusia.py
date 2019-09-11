@@ -8,6 +8,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import generic_dna
 
+import config
 import util_funcs
 
 ACCEPTED_IUPAC = set('GATCN')
