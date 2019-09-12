@@ -1,13 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ACCEPTED_IUPAC = set('GATCN')
 EXTENDED_IUPAC = set('URYSWKMBDHVN.-')
 
 
 def check_seq(sequence):
-    """
-    Ensure sequence is uppercase for comparison, and with only canonical
-    IUPAC DNA characters
+    """Check input DNA sequence and modify for uppercase and IUPAC characters.
+
+    Args:
+        sequence (str): Input DNA sequence
     """
 
     sequence = sequence.upper()

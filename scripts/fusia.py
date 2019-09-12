@@ -10,6 +10,7 @@ from Bio.Alphabet import generic_dna
 
 import config
 import util_funcs
+import alignment_funcs
 
 ACCEPTED_IUPAC = set('GATCN')
 EXTENDED_IUPAC = set('URYSWKMBDHVN.-')
@@ -71,8 +72,14 @@ def launch_unique(options):
     if not os.path.exists(options.o):
         os.makedirs(options.o)
 
+    # Prepare output files
+    out_xmfa = "%s/output.xmfa" % options.o
+    out_tree = "%s/output.tree" % options.o
+    out_backbone = "%s/output.backbone" % options.o
 
     # Iterate through input fasta files and convert to .gbk
+    gbk_files = []
+
     for f in os.listdir(options.i):
         if f.endswith('.fa') or f.endswith('.fasta') or \
                                 f.endswith('.fna'):
@@ -82,19 +89,28 @@ def launch_unique(options):
             gbk_filename = '.'.join(f.split('.')[0:-1]) + '.gbk'
             output_gbk = "%s/%s" % (options.o, gbk_filename)
 
-            input_handle = open(input_fasta, 'r')
-            sequences = list(SeqIO.parse(input_handle, "fasta"))
-            for s in sequences:
-                full_description = s.id
-                s.name = '_'.join(full_description.split('_')[0:2])
-                s.seq.alphabet = generic_dna
+            assert output_gbk not in gbk_files
+            gbk_files.append(output_gbk)
 
-            output_handle = open(output_gbk, 'w')
-            count = SeqIO.write(sequences, output_handle, "genbank")
+            if not os.path.exists(output_gbk):
+                input_handle = open(input_fasta, 'r')
+                sequences = list(SeqIO.parse(input_handle, "fasta"))
+                for s in sequences:
+                    full_description = s.id
+                    s.name = '_'.join(full_description.split('_')[0:2])
+                    s.seq.alphabet = generic_dna
 
-            input_handle.close()
-            output_handle.close()
-            print("Converted %i records" % count)
+                output_handle = open(output_gbk, 'w')
+                count = SeqIO.write(sequences, output_handle, "genbank")
+
+                input_handle.close()
+                output_handle.close()
+                print("Converted %i records" % count)
+            else:
+                print("Detected existing gbk file.")
+
+    alignment_funcs.launch_progressivemauve(out_xmfa, out_tree, out_backbone, 
+                                            gbk_files)
 
 
 def main():
