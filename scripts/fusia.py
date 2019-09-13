@@ -68,6 +68,11 @@ def launch_substring(options):
 
 def launch_unique(options):
 
+    print("##", "-" * 50)
+    print("## Launching \'fusia.py unique\' to identify unique substrings")
+    print("## among genome assemblies")
+    print("##", "-" * 50)
+
     # Prepare output directories
     if not os.path.exists(options.o):
         os.makedirs(options.o)
@@ -77,13 +82,14 @@ def launch_unique(options):
     out_tree = "%s/output.tree" % options.o
     out_backbone = "%s/output.backbone" % options.o
 
-    # Iterate through input fasta files and convert to .gbk
-    gbk_files = []
+    print("##")
+    print("## Iterate through input fasta files and convert to .gbk")
+    print("## -----------------------")
 
+    gbk_files = []
     for f in os.listdir(options.i):
         if f.endswith('.fa') or f.endswith('.fasta') or \
                                 f.endswith('.fna'):
-            print("Converting %s to .gbk" % f)
 
             input_fasta = "%s/%s" % (options.i, f)
             gbk_filename = '.'.join(f.split('.')[0:-1]) + '.gbk'
@@ -93,6 +99,7 @@ def launch_unique(options):
             gbk_files.append(output_gbk)
 
             if not os.path.exists(output_gbk):
+                print("Converting %s to .gbk" % f)
                 input_handle = open(input_fasta, 'r')
                 sequences = list(SeqIO.parse(input_handle, "fasta"))
                 for s in sequences:
@@ -107,10 +114,23 @@ def launch_unique(options):
                 output_handle.close()
                 print("Converted %i records" % count)
             else:
-                print("Detected existing gbk file.")
+                print("Detected existing gbk file: %s" % output_gbk)
 
-    alignment_funcs.launch_progressivemauve(out_xmfa, out_tree, out_backbone, 
-                                            gbk_files)
+    print("##")
+    print("## Launch progressiveMauve alignment on the list of .gbk files")
+    print("## -----------------------")
+
+    if not os.path.exists(out_xmfa):
+        alignment_funcs.launch_progressivemauve(out_xmfa, out_tree, 
+                                                out_backbone, gbk_files)
+    else:
+        print("Detected existing .xmfa file: %s" % out_xmfa)
+
+    print("##")
+    print("## Parse .xmfa output to identify regions unique to one genome")
+    print("## -----------------------")
+
+    alignment_funcs.parse_xmfa(out_xmfa)
 
 
 def main():

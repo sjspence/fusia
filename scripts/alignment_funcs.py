@@ -3,6 +3,14 @@
 import subprocess
 
 
+def parse_xmfa(out_xmfa):
+    """
+    """
+
+    print("hey")
+    print(out_xmfa)
+
+
 def launch_progressivemauve(out_xmfa, out_tree, out_backbone, gbk_files):
     """Launch progressiveMauve for multiple genome alignment.
 
@@ -11,6 +19,9 @@ def launch_progressivemauve(out_xmfa, out_tree, out_backbone, gbk_files):
         out_tree (str): Output filename for .tree alignment guide tree.
         out_backbone (str): Output filename for .backbone file.
         gbk_files (list(str)): A list of all input .gbk files to be aligned.
+
+    Todo:
+        * Save printed shell output into a log file
     """
 
     cmd = 'progressiveMauve'
