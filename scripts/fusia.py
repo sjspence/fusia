@@ -81,6 +81,7 @@ def launch_unique(options):
     out_xmfa = "%s/output.xmfa" % options.o
     out_tree = "%s/output.tree" % options.o
     out_backbone = "%s/output.backbone" % options.o
+    out_subaln_csv = "%s/output_subalignments.csv" % options.o
 
     print("##")
     print("## Iterate through input fasta files and convert to .gbk")
@@ -130,7 +131,11 @@ def launch_unique(options):
     print("## Parse .xmfa output to identify regions unique to one genome")
     print("## -----------------------")
 
-    alignment_funcs.parse_xmfa(out_xmfa)
+    if not os.path.exists(out_subaln_csv):
+        alignment_funcs.parse_xmfa(out_xmfa, out_subaln_csv)
+
+    else:
+        print("Detected existing subalignments file: %s" % out_subaln_csv)
 
 
 def main():

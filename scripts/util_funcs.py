@@ -8,7 +8,7 @@ def check_seq(sequence):
     """Check input DNA sequence and modify for uppercase and IUPAC characters.
 
     Args:
-        sequence (str): Input DNA sequence
+        sequence (str): Input DNA sequence.
     """
 
     sequence = sequence.upper()
