@@ -17,7 +17,7 @@ EXTENDED_IUPAC = set('URYSWKMBDHVN.-')
 
 
 def launch_substring(options):
-    
+
     # Format input sequence to search both forward and reverse complements
     search_seq = util_funcs.check_seq(options.s)
     search_seq_rc = str(Seq(search_seq).reverse_complement())
@@ -25,8 +25,8 @@ def launch_substring(options):
     # Prepare out_file handle for recording search results
     try:
         assert options.o.endswith('.csv')
-    except:
-        raise ValueError('Output file must be .CSV')
+    except ValueError:
+        print('Output file must be .CSV')
 
     out_handle = open(options.o, 'w')
     out_handle.write('# search_seq: %s\n' % search_seq)
@@ -49,8 +49,8 @@ def launch_substring(options):
                 record_seq = str(record.seq).upper()
                 try:
                     assert set(record_seq).issubset(ACCEPTED_IUPAC)
-                except:
-                    raise ValueError('Unexpected character\n%s' % record_seq)
+                except ValueError:
+                    print('Unexpected character\n%s' % record_seq)
 
                 if (search_seq in record_seq) or (search_seq_rc in record_seq):
 
@@ -58,8 +58,8 @@ def launch_substring(options):
                     count_rc = record_seq.count(search_seq_rc)
                     count_total = count + count_rc
 
-                    out_string = ','.join([file_name, record.id, 
-                                           record.description, 
+                    out_string = ','.join([file_name, record.id,
+                                           record.description,
                                            str(count_total)])
                     out_handle.write('%s\n' % out_string)
 
@@ -122,7 +122,7 @@ def launch_unique(options):
     print("## -----------------------")
 
     if not os.path.exists(out_xmfa):
-        alignment_funcs.launch_progressivemauve(out_xmfa, out_tree, 
+        alignment_funcs.launch_progressivemauve(out_xmfa, out_tree,
                                                 out_backbone, gbk_files)
     else:
         print("Detected existing .xmfa file: %s" % out_xmfa)
@@ -137,6 +137,8 @@ def launch_unique(options):
     else:
         print("Detected existing subalignments file: %s" % out_subaln_csv)
 
+    alignment_funcs.find_unique_regions(out_subaln_csv)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -145,26 +147,26 @@ def main():
 
     substring = subparsers.add_parser('substring', help="Find occurences of \
                                       input substring.")
-    substring.add_argument("-i", "--in_dir", dest="i", required=True, 
+    substring.add_argument("-i", "--in_dir", dest="i", required=True,
                            type=str, metavar="INPUT",
                            help="Input directory of assemblies in fasta \
                            format.")
-    substring.add_argument("-s", "--sequence", dest="s", required=True, 
+    substring.add_argument("-s", "--sequence", dest="s", required=True,
                            type=str,
                            help="Sequence to check for uniqueness within a \
                            set of assemblies.")
-    substring.add_argument("-o", "--out_file", dest="o", required=True, 
+    substring.add_argument("-o", "--out_file", dest="o", required=True,
                            type=str, metavar="OUTPUT",
                            help="Output file summarizing locations of the \
                            substring.")
 
     unique = subparsers.add_parser('unique', help="Find unique region across \
                                    input fasta files.")
-    unique.add_argument("-i", "--in_dir", dest="i", required=True, 
+    unique.add_argument("-i", "--in_dir", dest="i", required=True,
                         type=str, metavar="INPUT",
                         help="Input directory of assemblies in fasta \
                         format.")
-    unique.add_argument("-o", "--out_dir", dest="o", required=True, 
+    unique.add_argument("-o", "--out_dir", dest="o", required=True,
                         type=str, metavar="OUTPUT",
                         help="Output directory of assemblies in gbk \
                         format.")
